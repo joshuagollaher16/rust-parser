@@ -1,15 +1,19 @@
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Alpha(String),
     StringLiteral(String),
     Numeric(f32),
     LeftParen,
     RightParen,
+    LeftBrace,
+    RightBrace,
     Operator(char),
     Semicolon,
     Equals,
+    Call,
+    Var,
     Empty,
 }
 
@@ -62,11 +66,20 @@ impl Parser {
             c == ' ' || c == '\n'
         };
 
+        let choose_alpha = |s: &String| {
+
+            match s.as_str() {
+                "call" => Token::Call,
+                "var" => Token::Var,
+                _ => Token::Alpha(s.clone())
+            }
+        };
+
         let choose_token = |s: &String| -> Token {
 
             if *s == String::from(" ") || s.len() == 0 { return Token::Empty; }
 
-            if is_alpha(s) { return Token::Alpha(s.clone()); }
+            if is_alpha(s) { return choose_alpha(s); }
             else if is_numeric(s) { return Token::Numeric(s.parse().unwrap()); }
             panic!();
         };
@@ -125,6 +138,26 @@ impl Parser {
                 println!("{}", current_string);
                 if !is_first_iter {tokens.push(choose_token(&current_string));}
                 tokens.push(Token::RightParen);
+
+                current_string.clear();
+
+                was_oneliner = true;
+            }
+            else if new_char == '{' {
+                //make left brace token
+                println!("{}", current_string);
+                if !is_first_iter {tokens.push(choose_token(&current_string));}
+                tokens.push(Token::LeftBrace);
+
+                current_string.clear();
+
+                was_oneliner = true;
+            }
+            else if new_char == '}' {
+                //make right brace token
+                println!("{}", current_string);
+                if !is_first_iter {tokens.push(choose_token(&current_string));}
+                tokens.push(Token::RightBrace);
 
                 current_string.clear();
 
